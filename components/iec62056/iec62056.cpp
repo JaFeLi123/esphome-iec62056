@@ -152,7 +152,7 @@ size_t IEC62056Component::receive_frame_() {
 }
 
 void IEC62056Component::send_battery_wakeup_sequence_() {
-  const size_t n = 84;  //~2.24s
+  const size_t n = 40;  //~1.06s
   static_assert(n <= MAX_OUT_BUF_SIZE, "Out buffer too small");
   memset(out_buf_, 0, n);
   data_out_size_ = n;
@@ -382,7 +382,7 @@ void IEC62056Component::loop() {
       ESP_LOGD(TAG, "Battery meter wakeup sequence");
 
       this->send_battery_wakeup_sequence_();
-      wait_(1600 + 2240, SEND_REQUEST);  // wait for ~1.6s + 2.24s for all NULLs transmitted
+      wait_(500 + 1066, SEND_REQUEST);  // wait for ~1.6s + 2.24s for all NULLs transmitted
       break;
 
     case SEND_REQUEST:
@@ -568,6 +568,7 @@ void IEC62056Component::loop() {
               tmp_in_buf_[len_copy] = 0;
               data_in_ = (const char *)tmp_in_buf_;
               ESP_LOGD(TAG, "Cut Data into segement: %s", tmp_in_buf_);
+              cut_start_ptr = cut_end_ptr;
             } else {
               data_in_ = (const char *)in_buf_;
             }
