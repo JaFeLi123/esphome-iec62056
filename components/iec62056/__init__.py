@@ -15,6 +15,7 @@ AUTO_LOAD = ["sensor", "text_sensor", "switch", "binary_sensor"]
 CONF_IEC62056_ID = "iec62056_id"
 CONF_OBIS = "obis"
 CONF_BATTERY_METER = "battery_meter"
+CONF_MULTIPLE_OBIS_PER_LINE = "multiple_obis_per_line"
 CONF_RETRY_COUNTER_MAX = "retry_counter_max"
 CONF_RETRY_DELAY = "retry_delay"
 CONF_MODE_D = "mode_d"  # protocol mode D
@@ -59,6 +60,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_UPDATE_INTERVAL, default="15min"): cv.update_interval,
             cv.Optional(CONF_BAUD_RATE_MAX, default=9600): validate_baud_rate,
             cv.Optional(CONF_BATTERY_METER, default=False): cv.boolean,
+            cv.Optional(CONF_MULTIPLE_OBIS_PER_LINE, default=False): cv.boolean,
             cv.Optional(
                 CONF_RECEIVE_TIMEOUT, default="3s"
             ): cv.positive_time_period_milliseconds,
@@ -90,6 +92,9 @@ async def to_code(config):
 
     if CONF_BATTERY_METER in config:
         cg.add(var.set_battery_meter(config[CONF_BATTERY_METER]))
+
+    if CONF_MULTIPLE_OBIS_PER_LINE in config:
+        cg.add(var.set_multiple_obis_per_line(config[CONF_MULTIPLE_OBIS_PER_LINE]))
 
     if CONF_RETRY_COUNTER_MAX in config:
         cg.add(var.set_max_retry_counter(config[CONF_RETRY_COUNTER_MAX]))

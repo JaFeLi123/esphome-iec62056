@@ -56,6 +56,7 @@ void IEC62056Component::dump_config() {
   if (!force_mode_d_) {
     // These settings are not used in Mode D
     ESP_LOGCONFIG(TAG, "  Battery meter: %s", YESNO(this->battery_meter_));
+    ESP_LOGCONFIG(TAG, "  Multiple OBIS per line: %s", YESNO(this->multiple_obis_per_line_));
     if (this->config_baud_rate_max_bps_ > 0) {
       ESP_LOGCONFIG(TAG, "  Max baud rate: %u bps", this->config_baud_rate_max_bps_);
     } else {
@@ -536,16 +537,49 @@ void IEC62056Component::loop() {
             break;
           }
 
-          if (!parse_line_((const char *) in_buf_, obis, val1, val2)) {
-            ESP_LOGE(TAG, "Invalid frame format: '%s'", in_buf_);
-            break;
-          }
+          // If sensor outputs more than one OBIS per line, process them individually
+          uint8_t tmp_in_buf_[MAX_IN_BUF_SIZE];
+          size_t len_copy;
+          char *p = (char *)in_buf_;
+          char *cut_start_ptr = p;
+          char *cut_end_ptr = nullptr;
+          char *str_end_ptr = p + frame_size - 2;
 
-          // Update all matching sensors
-          auto range = sensors_.equal_range(obis);
-          for (auto it = range.first; it != range.second; ++it) {
-            set_sensor_value_(it, val1.c_str(), val2.c_str());
-          }
+          while ( p && *(p+1) && (p < str_end_ptr-1)) {
+            // If multiple obis per line is disabled in config, directly skip the loops
+            if(!multiple_obis_per_line_) {
+              p = str_end_ptr-1;
+            } else {
+              // Search through input buffer and stop at closing bracket when a new obis code is after
+              // e.g. 6.8(001234*kWh)6.26(00123.12*m3)9.21(123456)
+              while (*(p++)) {
+                    if (*p == ')' && (isdigit(*(p+1)) || p+1>=str_end_ptr )) {
+                      break;
+                    }
+                  }
+            }
+            cut_end_ptr = p + 1;
+
+            // Copy the segement to the temporary buffer
+            if(multiple_obis_per_line_) {
+              len_copy = cut_end_ptr - cut_start_ptr;
+              memcpy(tmp_in_buf_, cut_start_ptr, len_copy);
+              tmp_in_buf_[len_copy] = 0;
+              ESP_LOGD(TAG, "Cut Data into segement: %s", tmp_in_buf_);
+            } else {
+              tmp_in_buf_ = in_buf_;
+            }
+
+            if (!parse_line_((const char *) tmp_in_buf_, obis, val1, val2)) {
+              ESP_LOGE(TAG, "Invalid frame format: '%s'", in_buf_);
+              break;
+            }
+
+            // Update all matching sensors
+            auto range = sensors_.equal_range(obis);
+            for (auto it = range.first; it != range.second; ++it) {
+              set_sensor_value_(it, val1.c_str(), val2.c_str());
+            }
         }
       }
       break;

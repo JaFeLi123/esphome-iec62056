@@ -59,6 +59,9 @@ class IEC62056Component : public Component, public uart::UARTDevice {
   /// Set flag indicating battery operated meter.
   /// @param flag @c true for battery operated meter, otherwise @c false.
   void set_battery_meter(bool flag) { battery_meter_ = flag; }
+  /// Set flag indicating meter outpus multiple obis codes per line.
+  /// @param flag @c true for parsing multiple obis codes per line, otherwise @c false.
+  void set_multiple_obis_per_line(bool flag) { multiple_obis_per_line_ = flag; }
   /// @brief Called when switch state changed. Begins readout.
   void trigger_readout();
   void set_mode_d(bool flag) { force_mode_d_ = flag; }
@@ -161,6 +164,8 @@ class IEC62056Component : public Component, public uart::UARTDevice {
   uint32_t retry_delay_{10000};
   /// @brief Flag indicating battery meter.
   bool battery_meter_;
+  /// @brief Flag indicating meter outputs multiple obis codes per line.
+  bool multiple_obis_per_line_;
   /// @brief The current state of the state machine.
   CommState state_;
   /// @brief Timestamp, the last transmission from the meter.
