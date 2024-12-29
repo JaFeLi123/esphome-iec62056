@@ -544,6 +544,7 @@ void IEC62056Component::loop() {
           char *cut_start_ptr = p;
           char *cut_end_ptr = nullptr;
           char *str_end_ptr = p + frame_size - 2;
+          const char *data_in_;
 
           while ( p && *(p+1) && (p < str_end_ptr-1)) {
             // If multiple obis per line is disabled in config, directly skip the loops
@@ -565,10 +566,10 @@ void IEC62056Component::loop() {
               len_copy = cut_end_ptr - cut_start_ptr;
               memcpy(tmp_in_buf_, cut_start_ptr, len_copy);
               tmp_in_buf_[len_copy] = 0;
-              const char *data_in_ = (const char *)tmp_in_buf_;
+              data_in_ = (const char *)tmp_in_buf_;
               ESP_LOGD(TAG, "Cut Data into segement: %s", tmp_in_buf_);
             } else {
-              const char *data_in_ = (const char *)in_buf_;
+              data_in_ = (const char *)in_buf_;
             }
 
             if (!parse_line_(data_in_, obis, val1, val2)) {
