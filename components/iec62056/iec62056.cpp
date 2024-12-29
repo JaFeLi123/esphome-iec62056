@@ -565,12 +565,13 @@ void IEC62056Component::loop() {
               len_copy = cut_end_ptr - cut_start_ptr;
               memcpy(tmp_in_buf_, cut_start_ptr, len_copy);
               tmp_in_buf_[len_copy] = 0;
+              const char *data_in_ = (const char *)tmp_in_buf_;
               ESP_LOGD(TAG, "Cut Data into segement: %s", tmp_in_buf_);
             } else {
-              tmp_in_buf_ = in_buf_;
+              const char *data_in_ = (const char *)in_buf_;
             }
 
-            if (!parse_line_((const char *) tmp_in_buf_, obis, val1, val2)) {
+            if (!parse_line_(data_in_, obis, val1, val2)) {
               ESP_LOGE(TAG, "Invalid frame format: '%s'", in_buf_);
               break;
             }
@@ -580,6 +581,7 @@ void IEC62056Component::loop() {
             for (auto it = range.first; it != range.second; ++it) {
               set_sensor_value_(it, val1.c_str(), val2.c_str());
             }
+          }
         }
       }
       break;
