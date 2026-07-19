@@ -1,5 +1,13 @@
 #pragma once
 
+#include "esphome/core/version.h"
+
+#ifdef USE_ESP32_FRAMEWORK_ARDUINO
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 1, 0)
+#error "You are using Arduino framework which is not supported with ESPHome >= 2026.1.0. Please use ESP-IDF framework. Set `framework: type: esp-idf` in your esphome yaml config."
+#endif
+#endif
+
 #ifdef USE_ESP_IDF
 #include "esphome/components/uart/uart_component_esp_idf.h"
 #include "esphome/core/log.h"
